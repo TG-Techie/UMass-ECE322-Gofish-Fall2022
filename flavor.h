@@ -22,6 +22,17 @@
 
 #pragma once
 
+// terminal escape codes
+#define ESC_BLK "\e[30m"
+#define ESC_RED "\e[31m"
+#define ESC_GRN "\e[32m"
+#define ESC_YLW "\e[33m"
+#define ESC_BLU "\e[34m"
+#define ESC_MAG "\e[35m"
+#define ESC_CYN "\e[36m"
+#define ESC_WHT "\e[37m"
+#define ESC_RST "\e[0m"
+
 #define nullable(ptr_t) ptr_t
 
 #define ever() \

@@ -33,22 +33,22 @@
 
 player_t player_init(
     const char *const name,
-    bool              show_hand,
+    bool              reveal_cards,
     rank_t (*read_rank)(struct _player *)  //
 ) {
     // base setup
     player_t p = {
         .hand = (hand_t){.head = NULL, .length = 0},
         .name = name,
-        .show_hand = show_hand,
+        .reveal_cards = reveal_cards,
         .read_rank = read_rank,
         .books =
-            {RANK_ERROR,
-             RANK_ERROR,
-             RANK_ERROR,
-             RANK_ERROR,
-             RANK_ERROR,
-             RANK_ERROR}  //
+            {RANK_NULL,
+             RANK_NULL,
+             RANK_NULL,
+             RANK_NULL,
+             RANK_NULL,
+             RANK_NULL}  //
     };
 
     // set the overflow member to 0 as an always present null
@@ -91,42 +91,45 @@ void player_print_hand(const player_t *const player) {
 
     hand_node_t node = player->hand.head;
     while (node != NULL) {
-        card_pretty_print(node->card, " ");
+        card_pretty_str_t buf;
+        card_sfmt(node->card, &buf);
+        printf("%s ", buf.str);
         node = node->next;
     }
     printf("\n");
 }
 
-void player_print_book(const player_t *const player) {
-    printf("%s's book – ", player->name);
+void player_print_books(const player_t *const player) {
+    printf("%s's books – ", player->name);
 
     bool prev_was_blank = false;
     for (range(idx, 0, 7, 1)) {
         // check: if the book was previously terminated the rest
-        // should be RANK_ERRORS too
-        if (prev_was_blank && player->books[idx] != RANK_ERROR)
+        // should be RANK_NULLS too
+        if (prev_was_blank && player->books[idx] != RANK_NULL)
             ohcrap("invalid book, incorrectly terminated");
 
         // otherwise, print
         rank_t book = player->books[idx];
-        if (book != RANK_ERROR) printf("%s ", rank_as_str(book));
+        if (book != RANK_NULL) printf("%s ", rank_as_str(book));
     }
     printf("\n");
 }
 
 bool player_user_wants_to_play_again() {
     for (ever()) {
-        printf("Do you want to play again [Y/N]: ");
+        // ask
+        printf("Do you want to play again [Y/N]: " ESC_RED);
         char rank_input = '\0';
         scanf("%c", &rank_input);
+        printf(ESC_RST);  // always turn red off
 
+        // parse
         switch (toupper(rank_input)) {
             case 'Y':
                 return true;
             case 'N':
                 return false;
-            case '\0':
-                printf("\n");
             default:
                 printf("Invalid input\n");
         };
@@ -135,28 +138,32 @@ bool player_user_wants_to_play_again() {
 
 rank_t pl_query_for_rank(player_t *player) {
     for (ever()) {
-        printf("What are you looking for? enter a Rank: ");
+        printf("What are you looking for? enter a Rank: " ESC_RED);
 
         // query for the rank
-        char str[4] = {0};
-        if (fgets(str, 3, stdin) == NULL)
-            ohcrap(
-                "fgets failed, there's soemthing serisouly "
-                "wrong");
+        char str[7] = {0};
+        if (fgets(str, 5, stdin) == NULL)
+            ohcrap(ESC_RST
+                   " fgets failed, there's something serisouly "
+                   "wrong");
+
+        printf(ESC_RST);
 
         // to pass this to rank_from_str, write a null terminator
         // in any '\n' char
-        for (range(i, 0, 3, 1))
-            str[i] = str[i] == '\n' ? '\0' : str[i];
+        for (range(i, 0, 3, 1)) str[i] = str[i] == '\n' ? '\0' : str[i];
 
         rank_t r = rank_from_str(str);
+
+        // TODO make sure the rank is one the user has
+
         // maybe done
-        if (r != RANK_ERROR) {
+        if (hand_has_rank(&player->hand, r) && r != RANK_NULL) {
             return r;
         }
 
         // otherwise warn and repeat
-        printf("Invalid rank '%s', enter 2-10, J, Q, K, or A\n", str);
+        printf("Invalid choice '%s', enter a valid rank you have\n", str);
     }
 }
 
@@ -166,7 +173,7 @@ rank_t pl_compy_turn(player_t *player) {
     int idx = rand() % player->hand.length;
 
     // if the hand is empty, error and return
-    if (player->hand.length == 0) return RANK_ERROR;
+    if (player->hand.length == 0) return RANK_NULL;
 
     // go borrow the card, the hand still maintains ownership
     hand_node_t node = player->hand.head;
@@ -181,7 +188,7 @@ rank_t pl_compy_turn(player_t *player) {
     rank_t rank = node->card.rank;
 
     printf(
-        "%s is looking for Rank: %s\n",
+        "%s is looking for Rank: " ESC_CYN "%s" ESC_RST "\n",
         player->name,
         rank_as_str(rank));
 
@@ -202,4 +209,14 @@ void player_deal_cards(
         else
             ohcrap("cannot deal from an empty deck");
     };
+}
+
+bool player_add_book_did_win(player_t *const player, rank_t rank) {
+    rank_t *books = player->books;
+    for (range(idx, 0, 7, 1))
+        if (books[idx] == RANK_NULL) {
+            books[idx] = rank;
+            return idx == 6;  // true when this last the last index
+        }
+    return false;
 }

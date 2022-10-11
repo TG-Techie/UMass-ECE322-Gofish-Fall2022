@@ -28,7 +28,7 @@ AllowShortBlocksOnASingleLine: "false"
 BinPackArguments: "false"
 BinPackParameters: "false"
 ReflowComments: "true"
-ColumnLimit: "70"
+ColumnLimit: "77"
 ConstructorInitializerAllOnOneLineOrOnePerLine: "true"
 ExperimentalAutoDetectBinPacking: "false"
 IndentPPDirectives: AfterHash

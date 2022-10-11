@@ -46,7 +46,8 @@
         "map": "c",
         "set": "c",
         "unordered_map": "c",
-        "unordered_set": "c"
+        "unordered_set": "c",
+        "__node_handle": "c"
     },
     "C_Cpp.doxygen.generatedStyle": "///",
     "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",

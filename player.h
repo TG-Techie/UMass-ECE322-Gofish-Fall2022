@@ -49,7 +49,7 @@ typedef struct _player {
     // owning player when called
     rank_t (*const read_rank)(struct _player*);
     // whether to print the player's hand
-    const bool show_hand;
+    const bool reveal_cards;
     /* --- mutated --- */
     // the player's hand
     hand_t hand;
@@ -68,7 +68,7 @@ typedef struct _player {
  */
 player_t player_init(
     const char* const name,
-    bool              show_hand,
+    bool              reveal_cards,
     rank_t (*read_rank)(struct _player*));
 
 // TODO docstring
@@ -78,7 +78,7 @@ void player_cleanup(player_t* const);
 void player_print_hand(const player_t* const);
 
 // TODO docstring
-void player_print_book(const player_t* const);
+void player_print_books(const player_t* const);
 
 /**
  * @brief searches a hand for cards of a specific rank, put the cards
@@ -119,3 +119,12 @@ rank_t pl_query_for_rank(player_t* player);
 
 // TODO docstring
 rank_t pl_compy_turn(player_t* player);
+
+/**
+ * @brief adds a rank to a player's book
+ *
+ * do not pass a full player with a full book.
+ *
+ * @return true if the player won, else false
+ */
+bool player_add_book_did_win(player_t* const, rank_t);

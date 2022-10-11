@@ -30,7 +30,7 @@
 
 rank_t rank_from_str(char* const str) {
     if (strcmp("10", str) == 0) return RANK_10;
-    if (strlen(str) != 1) return RANK_ERROR;
+    if (strlen(str) != 1) return RANK_NULL;
 
     char c = str[0];
 
@@ -51,30 +51,16 @@ rank_t rank_from_str(char* const str) {
         case 'A':
             return RANK_ACE;
         default:
-            return RANK_ERROR;
+            return RANK_NULL;
     }
 }
 
-static const char* _ranks_as_strs[] = {
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "10",
-    "J",
-    "Q",
-    "K",
-    "A"};
+static const char* _ranks_as_strs[] =
+    {"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
 
-const char* rank_as_str(rank_t r) {
-    return _ranks_as_strs[r - RANK_2];
-}
+const char* rank_as_str(rank_t r) { return _ranks_as_strs[r - RANK_2]; }
 
-void card_pretty_print(card_t c, char* const end) {
+void card_sfmt(card_t c, card_pretty_str_t* str) {
     char* suit = NULL;
     switch (c.suit) {
         case SUIT_HEARTS:
@@ -94,7 +80,7 @@ void card_pretty_print(card_t c, char* const end) {
             break;
     }
 
-    printf("[%-2s%s]%s", rank_as_str(c.rank), suit, end);
+    sprintf(str->str, "[%-2s%s]", rank_as_str(c.rank), suit);
 }
 
 static inline hand_node_t new_hand_node(card_t card) {
@@ -130,17 +116,14 @@ void hand_add_card(hand_t* hand, card_t card) {
                 hand->length);
             ohcrap(errstr);
         }
-
-        // add the new node and adjust length
-        last->next = new_node;
-        hand->length++;
     }
 }
 
 void hand_search_remove_cards(
     hand_t* const hand,
     rank_t        rank,
-    card_t* const dest  //
+    card_t* const dest,
+    int* const    count  //
 ) {
     int pos = 0;
 
@@ -152,12 +135,7 @@ void hand_search_remove_cards(
 
         hand->head = node->next;
         free(node);
-    }
-
-    // node is now always the last node, which may be null
-    if (node == NULL) {
-        dest[pos] = CARD_NULL;
-        return;
+        hand->length--;
     }
 
     // iterate over the rest of the nodes
@@ -173,8 +151,51 @@ void hand_search_remove_cards(
             dest[pos++] = popped->card;
             // release the hand node
             free(popped);
+            hand->length--;
         }
     }
 
-    dest[pos] = CARD_NULL;
+    *count += pos;
+}
+
+// void cards_print_arr(
+//     const card_t* const cards,
+//     size_t              count,
+//     char* const         ifempty  //
+// ) {
+//     card_pretty_str_t card_buf;
+//     for (range(idx, 0, count, 1)) {
+//         card_sfmt(cards[idx], &card_buf);
+//         printf("%s ", card_buf.str);
+//     }
+//     printf("%s\n", count == 0 ? ifempty : "");
+// }
+
+int hand_has_rank(const hand_t* const hand, rank_t rank) {
+    hand_node_t node = hand->head;
+    int         rank_count = 0;
+    while (node != NULL) {
+        if (node->card.rank == rank) rank_count++;
+        node = node->next;
+    }
+    return rank_count;
+}
+
+void cards_asfmt(
+    char**              new_string,
+    const card_t* const cards,
+    size_t              from_idx,
+    size_t              upto_idx  //
+) {
+    char* str = calloc((upto_idx - from_idx) + 3, sizeof(card_pretty_str_t));
+
+    for (range(idx, from_idx, upto_idx, 1)) {
+        card_pretty_str_t buf;
+        card_sfmt(cards[idx], &buf);
+        sprintf(&str[strlen(str)], "%s ", buf.str);
+    }
+
+    str[strlen(str)] = '\0';
+
+    *new_string = str;
 }

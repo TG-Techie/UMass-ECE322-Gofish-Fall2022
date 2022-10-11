@@ -48,10 +48,7 @@ typedef struct {
 } deck_t;
 
 /**
- * @brief initializes a deck with 52 cards
- *
- * Will return the cards in suit_t order then rank_t order.
- * [2...A ♥], [2...A ♣], [2...A ♦], [2...A ♠]
+ * @brief initializes a deck with 52 cards (order undefined)
  *
  * @return
  */

@@ -30,8 +30,7 @@
 void deck_init(deck_t* const d) {
     for (range(i, 0, 52, 1)) {
         d->cards[i] = (card_t){
-            .suit = (i / 13) + SUIT_HEARTS,
-            .rank = (i % 13) + RANK_2};
+            .suit = (i / 13) + SUIT_HEARTS, .rank = (i % 13) + RANK_2};
     };
     d->_canary = (card_t){0, 0};
     d->remaining = 52;
@@ -59,6 +58,7 @@ void deck_shuffle(deck_t* const deck) {
 }
 
 err_t deck_deal(deck_t* const deck, card_t* const into) {
+    *into = CARD_NULL;
     if (deck->remaining == 0) return ERROR;
     *into = deck->cards[--deck->remaining];
     return SUCCESS;

@@ -55,17 +55,14 @@ bool test_deck_shuffle_okay() {
     for (range(i, shuffled.remaining - 1, -1, -1)) {
         if (entries[i].count != 1) {
             passed = false;
-            card_pretty_print(entries[i].card, "");
+            card_sfmt(entries[i].card, "");
             printf(" found %i times\n", entries[i].count);
         }
     }
     return passed;
 }
 
-#define testcase(name)                                               \
-    {                                                                \
-        printf(                                                      \
-            "%s %s\n", name() ? "[✅] passed" : "[❌] failed", #name); \
-    }
+#define testcase(name) \
+    { printf("%s %s\n", name() ? "[✅] passed" : "[❌] failed", #name); }
 
 int main() { testcase(test_deck_shuffle_okay); }

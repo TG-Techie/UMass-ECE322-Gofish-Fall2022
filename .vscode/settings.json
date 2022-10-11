@@ -41,7 +41,12 @@
         "tuple": "c",
         "typeinfo": "c",
         "cstdio": "c",
-        "string_view": "c"
+        "string_view": "c",
+        "__bit_reference": "c",
+        "map": "c",
+        "set": "c",
+        "unordered_map": "c",
+        "unordered_set": "c"
     },
     "C_Cpp.doxygen.generatedStyle": "///",
     "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",

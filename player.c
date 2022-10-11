@@ -75,7 +75,7 @@ void player_cleanup(player_t *player) {
         char *errmsg;
         asprintf(
             &errmsg,
-            "node mismatch while cleaning up '%s', (%i != %i)",
+            "node mismatch while cleaning up '%s', (%i != %lu)",
             player->name,
             node_count,
             player->hand.length);
@@ -135,7 +135,7 @@ bool player_user_wants_to_play_again() {
 
 rank_t pl_query_for_rank(player_t *player) {
     for (ever()) {
-        printf("enter a Rank: ");
+        printf("What are you looking for? enter a Rank: ");
 
         // query for the rank
         char str[4] = {0};
@@ -173,14 +173,20 @@ rank_t pl_compy_turn(player_t *player) {
     for (range(_, 0, idx, 1)) {
         if (node->next == NULL)
             ohcrap(
-                "cannot select a card past the end of the "
-                "copmy's "
+                "cannot select a card past the end of the  copmy's "
                 "hand ().");
         node = node->next;
     }
 
+    rank_t rank = node->card.rank;
+
+    printf(
+        "%s is looking for Rank: %s\n",
+        player->name,
+        rank_as_str(rank));
+
     // then return the rank
-    return node->card.rank;
+    return rank;
 }
 
 void player_deal_cards(
@@ -189,7 +195,7 @@ void player_deal_cards(
     uint8_t         count  //
 ) {
     for (range(_, 0, count, 1)) {
-        card_t card = NULLCARD;
+        card_t card = CARD_NULL;
 
         if (deck_deal(deck, &card))
             hand_add_card(&player->hand, card);

@@ -77,8 +77,7 @@ typedef struct {
     rank_t rank;
 } card_t;
 
-#define NULLCARD \
-    (card_t) { .suit = SUIT_ERROR, .rank = RANK_ERROR }
+#define CARD_NULL ((card_t){.suit = SUIT_ERROR, .rank = RANK_ERROR})
 
 // TODO docstring
 /**
@@ -146,3 +145,19 @@ bool hand_has_rank(hand_t* hand, rank_t rank);
  *
  */
 void hand_add_card(hand_t*, card_t);
+
+/**
+ * @brief searches for all the cards of the given ranks and puts them
+ * into the dest pointer
+ *
+ * The written array will be terminatored with a RANK_ERROR and
+ * SUIT_ERROR card.
+ *
+ * @param hand the head to search in
+ * @param rank the rank to search for
+ * @param dest pointer to an array at least 4 card_t long
+ */
+void hand_search_remove_cards(
+    hand_t* const hand,
+    rank_t        rank,
+    card_t* const dest);

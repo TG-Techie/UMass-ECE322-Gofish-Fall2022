@@ -1,7 +1,7 @@
 EXECUTABLE:=gofish
 SOURCES=$(EXECUTABLE).c player.c card.c deck.c flavor.c
 OBJECTS=$(SOURCES:.c=.o)
-CFLAGS= -Werror -Wall -std=gnu11 -Wno-missing-declarations
+CFLAGS= -Werror -Wall -std=gnu11 -Wno-missing-declarations -Wunused-variable
 
 all: $(EXECUTABLE)
 

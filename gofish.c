@@ -33,6 +33,8 @@
  *  -Wno-missing-declarations
  */
 
+#define GO_DEBUG
+
 void play_game() {
     // --- setup---
     // obligatory feedback
@@ -59,8 +61,25 @@ void play_game() {
         // new turn preamble / info
         printf("\n--- %s's Turn ---\n", playing->name);
         if (playing->show_hand) player_print_hand(playing);
+#ifdef GO_DEBUG
+        printf("---\n");
+        player_print_hand(&user);
+        player_print_hand(&compy);
+        printf("---\n");
+#endif
         player_print_book(&user);
         player_print_book(&compy);
+
+        // -- start --
+        rank_t looking_for = playing->read_rank(playing);
+        card_t found[4] = {0};  // 0 being RANK_ERROR and SUIT_ERROR
+        hand_search_remove_cards(&other->hand, looking_for, found);
+
+        for (range(idx, 0, 3, 1)) {
+            if (found[idx].rank != RANK_ERROR)
+                card_pretty_print(found[idx], " ");
+        }
+        printf("\n");
 
         // -- setup for the next turn ---
         // swap users

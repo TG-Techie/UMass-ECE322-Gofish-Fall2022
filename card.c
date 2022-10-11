@@ -125,7 +125,7 @@ void hand_add_card(hand_t* hand, card_t card) {
             char* errstr;
             asprintf(
                 &errstr,
-                "mis-matched hand size (count mismatch %i != %i)",
+                "mis-matched hand size (count mismatch %i != %lu)",
                 card_count,
                 hand->length);
             ohcrap(errstr);
@@ -135,4 +135,46 @@ void hand_add_card(hand_t* hand, card_t card) {
         last->next = new_node;
         hand->length++;
     }
+}
+
+void hand_search_remove_cards(
+    hand_t* const hand,
+    rank_t        rank,
+    card_t* const dest  //
+) {
+    int pos = 0;
+
+    hand_node_t node = hand->head;
+    // while the head contains the card, pop and write it out
+    while (hand->head != NULL && hand->head->card.rank == rank) {
+        node = hand->head;
+        dest[pos++] = node->card;
+
+        hand->head = node->next;
+        free(node);
+    }
+
+    // node is now always the last node, which may be null
+    if (node == NULL) {
+        dest[pos] = CARD_NULL;
+        return;
+    }
+
+    // iterate over the rest of the nodes
+    while (node != NULL && node->next != NULL) {
+        if (node->next->card.rank != rank) {
+            // proceed forward
+            node = node->next;
+        } else {
+            // pop the node and emit the card
+            hand_node_t popped = node->next;
+            node->next = popped->next;
+            // write out the card
+            dest[pos++] = popped->card;
+            // release the hand node
+            free(popped);
+        }
+    }
+
+    dest[pos] = CARD_NULL;
 }

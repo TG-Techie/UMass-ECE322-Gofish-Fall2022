@@ -95,10 +95,6 @@ void hand_add_card(hand_t* hand, card_t card) {
 
     // TODO make the hand_add_card insert in rank order
 
-    // // DEBUG
-    // card_pretty_str_t x;
-    // card_sfmt(card, &x);
-
     if (hand->head == NULL) {
         if (hand->length != 0)
             ohcrap("mis-matched hand size (>0 with NULL)");
@@ -112,9 +108,6 @@ void hand_add_card(hand_t* hand, card_t card) {
         hand_node_t last = hand->head;
         int         card_count = 1;
         while (last->next != NULL) {
-            // DEBUG
-            // card_sfmt(last->card, &x);
-            // printf("%s ", x.str);
             last = last->next;
             card_count++;
         }
@@ -123,11 +116,6 @@ void hand_add_card(hand_t* hand, card_t card) {
         last->next = new_node;
         card_count++;
         hand->length++;
-
-        // // DEBUG
-        // card_sfmt(last->card, &x);
-        // printf("@%s ", x.str);
-        // // printf("(%i: %s) ", card_count, x.str);
 
         // sanity check
         if (card_count != hand->length) {

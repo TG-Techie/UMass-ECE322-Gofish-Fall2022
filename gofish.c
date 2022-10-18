@@ -38,8 +38,6 @@
 #include "player.h"
 #include "deck.h"
 
-// #define GO_DEBUG
-
 /**
  * @brief Information required to continue the game after a single turn.
  * Effectively the edge on the graph of a state machine for this game.
@@ -219,8 +217,7 @@ turn_result_t play_turn(
         return result;
     }
 
-    // either add the desired book
-    if (total == 4) {
+    if (total == 4) {  // it's a new book, do the add thing
         if (player_add_book_did_win(playing, desired)) {
             return TURN_WON;
         }
@@ -229,7 +226,7 @@ turn_result_t play_turn(
             playing->name,
             rank_as_str(desired));
         result = TURN_EXTRA;
-    } else {
+    } else {  // add them back into the hand
         for (range(idx, 0, total, 1))
             hand_add_card(&playing->hand, cards[idx]);
     }
@@ -239,8 +236,6 @@ turn_result_t play_turn(
 
     printf("\n");
     return result;
-    // card_pretty_str_t card_str;
-    // card_pretty_print(card_str, )
 }
 
 void play_game() {
@@ -266,14 +261,12 @@ void play_game() {
     while (player_that_won == NULL) {
         switch (play_turn(playing, other, &deck, &user, &compy)) {
             case TURN_WON:
-                // TODO print stuff
                 player_that_won = playing;
                 break;
             case TURN_LOST:
                 player_that_won = other;
                 break;
             case TURN_EXTRA:
-                // TODO print stuff
                 continue;
             case TURN_NEXT: {
                 player_t* temp = playing;

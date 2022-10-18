@@ -157,12 +157,6 @@ rank_t player_query_for_rank(player_t *player) {
         char str[7] = {0};
         if (fgets(str, 5, stdin) == NULL)
             ohcrap(ESC_RST " fgets failed, something's serisouly wrong");
-        // char *str = raw_str;
-        // for (range(i, 0, strlen(raw_str), 1)) {
-        //     if (raw_str[i] != ' ') {
-        //         str = &str[i];
-        //     }
-        // }
 
         printf(ESC_RST);
 
@@ -225,12 +219,7 @@ void player_deal_cards(
             hand_add_card(&player->hand, card);
         else
             ohcrap("cannot deal from an empty deck");
-        // DEBUG
-        // card_pretty_str_t x;
-        // card_sfmt(card, &x);
-        // printf(":%s: %s\n", player->name, x.str);
     };
-    // printf("\n");
 }
 
 bool player_add_book_did_win(player_t *const player, rank_t rank) {

@@ -16,7 +16,7 @@ $(OBJECTS):%.o:%.c
 debug:CFLAGS += -g
 debug:$(OBJECTS)
 #	@echo EXE: the rulename is $@ and the first dependency is $<
-	gcc $(CFLAGS) -o $@ $(OBJECTS)
+	gcc $(CFLAGS) -o $@ $(OBJECTS) -dGO_DEBUG
 
 clean:
 	rm -rf $(OBJECTS) $(EXECUTABLE)

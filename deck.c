@@ -25,7 +25,6 @@
 #include <time.h>
 
 #include "deck.h"
-#include "flavor.h"
 
 void deck_init(deck_t* const d) {
     for (range(i, 0, 52, 1)) {

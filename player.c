@@ -29,7 +29,11 @@
 #include <ctype.h>
 
 #include "player.h"
-#include "flavor.h"
+
+void __attribute__((noreturn)) ohcrap(const char *const msg) {
+    fprintf(stderr, "\nError: %s\n", msg);
+    exit(-1);
+}
 
 player_t player_init(
     const char *const name,
@@ -75,7 +79,7 @@ void player_cleanup(player_t *player) {
         char *errmsg;
         asprintf(
             &errmsg,
-            "node mismatch while cleaning up '%s', (%i != %lu)",
+            "node mismatch while cleaning up '%s', (%i != %u)",
             player->name,
             node_count,
             player->hand.length);
@@ -88,6 +92,7 @@ void player_cleanup(player_t *player) {
 
 void player_print_hand(const player_t *const player) {
     printf("%s's hand – ", player->name);
+    // printf(" {%u} ", player->hand.length);
 
     hand_node_t node = player->hand.head;
     while (node != NULL) {
@@ -111,17 +116,25 @@ void player_print_books(const player_t *const player) {
 
         // otherwise, print
         rank_t book = player->books[idx];
-        if (book != RANK_NULL) printf("%s ", rank_as_str(book));
+        if (book != RANK_NULL) printf("% 2s ", rank_as_str(book));
     }
     printf("\n");
 }
 
 bool player_user_wants_to_play_again() {
-    for (ever()) {
+    for (;;) {
         // ask
         printf("Do you want to play again [Y/N]: " ESC_RED);
+        char str[7];
+        if (fgets(str, 4, stdin) == NULL)
+            ohcrap(ESC_RST " fgets failed, something's serisouly wrong");
         char rank_input = '\0';
-        scanf("%c", &rank_input);
+        for (range(i, 0, strlen(str), 1)) {
+            if (str[i] != ' ') {
+                rank_input = str[i];
+                break;
+            }
+        }
         printf(ESC_RST);  // always turn red off
 
         // parse
@@ -136,16 +149,20 @@ bool player_user_wants_to_play_again() {
     };
 }
 
-rank_t pl_query_for_rank(player_t *player) {
-    for (ever()) {
+rank_t player_query_for_rank(player_t *player) {
+    for (;;) {
         printf("What are you looking for? enter a Rank: " ESC_RED);
 
         // query for the rank
         char str[7] = {0};
         if (fgets(str, 5, stdin) == NULL)
-            ohcrap(ESC_RST
-                   " fgets failed, there's something serisouly "
-                   "wrong");
+            ohcrap(ESC_RST " fgets failed, something's serisouly wrong");
+        // char *str = raw_str;
+        // for (range(i, 0, strlen(raw_str), 1)) {
+        //     if (raw_str[i] != ' ') {
+        //         str = &str[i];
+        //     }
+        // }
 
         printf(ESC_RST);
 
@@ -167,7 +184,7 @@ rank_t pl_query_for_rank(player_t *player) {
     }
 }
 
-rank_t pl_compy_turn(player_t *player) {
+rank_t play_compy_turn(player_t *player) {
     // randomly select a card's index and we'll return it's rank
     srand(time(NULL));
     int idx = rand() % player->hand.length;
@@ -208,7 +225,12 @@ void player_deal_cards(
             hand_add_card(&player->hand, card);
         else
             ohcrap("cannot deal from an empty deck");
+        // DEBUG
+        // card_pretty_str_t x;
+        // card_sfmt(card, &x);
+        // printf(":%s: %s\n", player->name, x.str);
     };
+    // printf("\n");
 }
 
 bool player_add_book_did_win(player_t *const player, rank_t rank) {
@@ -216,7 +238,14 @@ bool player_add_book_did_win(player_t *const player, rank_t rank) {
     for (range(idx, 0, 7, 1))
         if (books[idx] == RANK_NULL) {
             books[idx] = rank;
-            return idx == 6;  // true when this last the last index
+            bool did_win = idx == 6;
+            if (did_win) {  // true when this last the last indexs
+                player_print_books(player);
+                printf(
+                    "\n\nHear ye! Hear ye! %s has won!\n\n", player->name);
+                return true;
+            }
+            return did_win;
         }
     return false;
 }

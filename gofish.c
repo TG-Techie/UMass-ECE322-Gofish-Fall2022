@@ -20,21 +20,31 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/** === [ Notes ] ===
+ * This project may require the following flags:
+ *  -std=gnu11
+ *  -Wno-missing-declarations
+ *  -Wshadow
+ *  -Wno-format (for macOS & Linux cross compatibility)
+ *
+ * Undefined behavior in the assingment:
+ *  Where the rules given miss an edge case I used softgame's rules
+ *  http://www.softgame.net/cards/go-fish-rules.htm
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "player.h"
 #include "deck.h"
-#include "flavor.h"
 
-/** === [ Requirements ] ===
- * - This project may require the following flags
- *  -std=gnu11
- *  -Wno-missing-declarations
+// #define GO_DEBUG
+
+/**
+ * @brief Information required to continue the game after a single turn.
+ * Effectively the edge on the graph of a state machine for this game.
+ *
  */
-
-#define GO_DEBUG
-
 typedef enum {
     TURN_NEXT,
     TURN_EXTRA,
@@ -76,8 +86,30 @@ turn_result_t play_turn(
     player_t* const user_player,
     player_t* const compy_player  //
 ) {
-    // -- preamble / info --
+    /* === [ Commence Turn ] === */
     printf("=== %s's Turn ===\n", playing->name);
+
+    /* --- [ empty hand ] --- */
+    // if the player's hand is empty, draw a card if able
+    card_t draw_up = CARD_NULL;
+    if (playing->hand.length == 0) {
+        // the deck has cards
+        if (deck_deal(deck, &draw_up)) {
+            printf("%s has no cards, drawing...\n", playing->name);
+            hand_add_card(&playing->hand, draw_up);
+        }
+        // if they could not draw a card and have no cards pass the turn
+        else {
+            printf(
+                "%s has no cards and cannot draw a card from an empty deck, "
+                "passing the turn...\n",
+                playing->name);
+            return TURN_NEXT;
+        }
+    }
+
+    // -- preamble / info --
+
     player_print_hand(user_player);
 #ifdef GO_DEBUG
     player_print_hand(compy_player);
@@ -86,24 +118,26 @@ turn_result_t play_turn(
     player_print_books(compy_player);
     printf("\n");
 
-    // -- commence turn --
-    rank_t desired = playing->read_rank(playing);
-    // TODO deal with empty deck
+    /* === [ Choose and Request a Rank ] === */
+    turn_result_t result = TURN_NEXT;
+    rank_t        desired = playing->read_rank(playing);
+    card_t        cards[8] = {0};  // 8 just in case
 
-    card_t cards[7] = {0};  // (0 == CARD_NULL)
-    int    other_count = 0;
+    // extract and count the other player's card matching ther desired rank
+    int other_count = 0;
     hand_search_remove_cards(&other->hand, desired, &cards[0], &other_count);
+
+    // extract the cards from this player's hand, this makes
+    // counting/checking for a book easy
     int total = other_count;
     hand_search_remove_cards(
         &playing->hand, desired, &cards[other_count], &total);
 
-    // Values to return
-    turn_result_t result = TURN_NEXT;
-
+    // if the other player had cards
     if (other_count > 0) {
-        // print found cards
         char* a_cards_str;
 
+        // print the other player's cards
         cards_asfmt(&a_cards_str, cards, 0, other_count);
         printf(
             "    %s had " ESC_GRN "%s" ESC_RST "\n",
@@ -111,13 +145,17 @@ turn_result_t play_turn(
             a_cards_str);
         free(a_cards_str);
 
+        // print the current player's cards
         cards_asfmt(&a_cards_str, cards, other_count, total);
         printf(
             "    %s had " ESC_GRN "%s" ESC_RST "\n",
             playing->name,
             a_cards_str);
         free(a_cards_str);
-    } else {
+
+    }
+    // if the other player had none
+    else {
         printf(
             "    %s has no rank %s cards\n",
             other->name,
@@ -142,10 +180,11 @@ turn_result_t play_turn(
             result = TURN_EXTRA;
             cards[total++] = drawn;
             printf(
-                "    %s drew the card they asked for " ESC_GRN "%s" ESC_RST
-                "\n",
+                "    %s drew the card they asked for %s%s%s\n",
                 playing->name,
-                buf.str);
+                ESC_GRN,
+                buf.str,
+                ESC_RST);
         } else if (  // this completes a book from what's in out hand
             drawn.rank != RANK_NULL &&
             3 == hand_has_rank(&playing->hand, drawn.rank)  //
@@ -156,9 +195,9 @@ turn_result_t play_turn(
                 &playing->hand, drawn.rank, drawn_book, &book_sanity_check);
             if (book_sanity_check != 3)
                 ohcrap("hand rank count mismatch, there're problems");
-            if (player_add_book_did_win(playing, drawn.rank))
-                result = TURN_WON;
-            else {
+            if (player_add_book_did_win(playing, drawn.rank)) {
+                return TURN_WON;
+            } else {
                 result = TURN_EXTRA;
                 printf(
                     "    %s drew the %s (making a the book of the %s "
@@ -182,7 +221,9 @@ turn_result_t play_turn(
 
     // either add the desired book
     if (total == 4) {
-        if (player_add_book_did_win(playing, desired)) result = TURN_WON;
+        if (player_add_book_did_win(playing, desired)) {
+            return TURN_WON;
+        }
         printf(
             "    %s made a book of the %s cards\n",
             playing->name,
@@ -201,100 +242,18 @@ turn_result_t play_turn(
     // card_pretty_str_t card_str;
     // card_pretty_print(card_str, )
 }
-// {
-//     // -- genericise the turns ---
-
-//     // new turn preamble / info
-//     printf("\n--- %s's Turn ---\n", playing->name);
-//     player_print_hand(&user);
-// #ifdef GO_DEBUG
-//     printf("---\n");
-//     player_print_hand(&compy);
-//     printf("---\n");
-// #endif
-//     player_print_books(&user);
-//     player_print_books(&compy);
-
-//     // -- start --
-//     rank_t desired = playing->read_rank(playing);
-//     card_t found[7] = {0};  // 0 being RANK_NULL and SUIT_NULL
-//     int    count = 0;
-//     hand_search_remove_cards(&other->hand, desired, found, &count);
-
-//     // perform action based on cards found
-//     bool   gets_an_extra_turn = false;
-//     card_t card = CARD_NULL;
-//     if (count > 0) {
-//         // print the cards
-//         printf("%s has ", other->name);
-//         cards_print_arr(found, count, "no cards");
-
-//         // see if cards form a book by removing them from the surrent
-//         // player
-//         int start = count;
-//         hand_search_remove_cards(
-//             &playing->hand, desired, &found[count], &count);
-
-//         // show
-//         printf("%s has ", playing->name);
-//         cards_print_arr(&found[start], count - start, "no cards");
-
-//         // add a book if present, else into the hand
-//         if (count == 4) {
-//             playing_just_won = player_add_book_did_win(playing,
-//             desired); player_print_books(playing);
-//         } else {
-//             for (range(idx, 0, count, 1))
-//                 hand_add_card(&playing->hand, found[idx]);
-//         }
-//     } else {
-//         printf(
-//             "Go fish! %s had no %s cards\n",
-//             other->name,
-//             rank_as_str(desired));
-//         // deal a card to
-//         if (deck_deal(&deck, &card)) {
-//             hand_add_card(&playing->hand, card);
-//             printf("%s draws a card ", playing->name);
-//             if (playing->reveal_cards) card_pretty_print(card, "");
-//             printf("\n");
-//         } else {
-//             printf("no cards left to deal\n");
-//         }
-
-//         // -- check for an extra turn --
-//         gets_an_extra_turn = (card.rank == desired);
-//     }
-
-//     if (playing_just_won) {
-//         break;  // handle winning out of the loop
-//     }
-
-//     // TODO check for a new book
-
-//     if (gets_an_extra_turn) {
-//         printf(
-//             "Wait... %s drew the card they were looking for ",
-//             playing->name);
-//         card_pretty_print(
-//             card, ", luck like that deserves an extra turn!\n");
-//         continue;
-//     }
-// }
 
 void play_game() {
     // --- setup---
     // obligatory feedback
     printf("\n\n=== [ New Game ] ===\nShuffling deck...\n\n");
 
-    player_t user = player_init("Player 1", true, &pl_query_for_rank);
-    player_t compy = player_init("Player 2", false, &pl_compy_turn);
+    player_t user = player_init("Player 1", true, &player_query_for_rank);
+    player_t compy = player_init("Player 2", false, &play_compy_turn);
 
     deck_t deck = {0};
     deck_init(&deck);
-    // #ifndef GO_DEBUG
     deck_shuffle(&deck);
-    // #endif
 
     player_deal_cards(&user, &deck, 7);
     player_deal_cards(&compy, &deck, 7);
@@ -303,7 +262,7 @@ void play_game() {
     player_t* playing = &user;
     player_t* other = &compy;
 
-    nullable(player_t*) player_that_won = NULL;
+    player_t* player_that_won = NULL;  // nullable
     while (player_that_won == NULL) {
         switch (play_turn(playing, other, &deck, &user, &compy)) {
             case TURN_WON:
@@ -324,8 +283,6 @@ void play_game() {
             }
         }
     };
-
-    printf("Contgrats %s has won!\n", player_that_won->name);
 
     // --- cleanup ---
     player_cleanup(&user);

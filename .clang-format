@@ -29,7 +29,7 @@ BinPackArguments: "false"
 BinPackParameters: "false"
 ReflowComments: "true"
 ColumnLimit: "77"
-ConstructorInitializerAllOnOneLineOrOnePerLine: "true"
+ConstructorInitializerAllOnOneLineOrOnePerLine: "false"
 ExperimentalAutoDetectBinPacking: "false"
 IndentPPDirectives: AfterHash
 IndentWidth: "4"

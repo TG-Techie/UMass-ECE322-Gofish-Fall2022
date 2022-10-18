@@ -26,9 +26,39 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "flavor.h"
+/**
+ * @brief Terminal escape color codes
+ */
+#define ESC_BLK "\e[30m"
+#define ESC_RED "\e[31m"
+#define ESC_GRN "\e[32m"
+#define ESC_YLW "\e[33m"
+#define ESC_BLU "\e[34m"
+#define ESC_MAG "\e[35m"
+#define ESC_CYN "\e[36m"
+#define ESC_WHT "\e[37m"
+#define ESC_RST "\e[0m"
 
-typedef enum {
+/**
+ * @brief A sugar-only macro used to enforce for loop structure
+ *
+ * @param name the name of the loop variable
+ * @param start <int> the first number to emit when iterating
+ * @param upto <int> stop iterating when reached, excluded from emitted
+ * values
+ * @param step <int> the value to jump by between iterations
+ */
+#define range(name, start, upto, step)          \
+    int name = start;                           \
+    (step > 0) ? (name < upto) : (name > upto); \
+    name += step
+
+/**
+ * @brief A cross-enum defined return type.
+ *
+ * @return typedef enum (one byte)
+ */
+typedef enum __attribute__((__packed__)) {
     ERROR = 0,
     SUCCESS = 1,
 } err_t;
@@ -79,7 +109,6 @@ typedef struct {
 
 #define CARD_NULL ((card_t){.suit = SUIT_NULL, .rank = RANK_NULL})
 
-// TODO docstring
 /**
  * @brief a linked list node of a hand / group of cards
  * @ownership the hand this node is a member of
@@ -91,9 +120,10 @@ typedef struct {
  *
  */
 typedef struct hand_node {
-    card_t card;
-    nullable(struct hand_node*) next;  // optional
+    card_t            card;
+    struct hand_node* next;  // nullable
 } * hand_node_t;
+// TODO: determine if defining a struct pointer in a typedef is poor practice
 
 /**
  * @brief A linked list containing players'hands
@@ -101,8 +131,8 @@ typedef struct hand_node {
  * @interface provides a first member next node "interface"
  */
 typedef struct {
-    nullable(hand_node_t) head;
-    size_t length;
+    hand_node_t head;  // nullable
+    size_t      length;
 } hand_t;
 
 /**
@@ -169,13 +199,6 @@ void hand_search_remove_cards(
     card_t* const dest,
     int* const    count);
 
-// // TODO remove or docstring
-// void cards_print_arr(
-//     const card_t* const cards,
-//     size_t              count,
-//     char* const         ifempty);
-
-// TODO Docstring
 /**
  * @brief a new string formats the passed cards into it
  *
@@ -189,3 +212,11 @@ void cards_asfmt(
     const card_t* const cards,
     size_t              from_idx,
     size_t              upto_idx);
+
+/**
+ * @brief print an error message and bail out of the program, this should
+ * never need to be called
+ *
+ * @param msg the string to print as the error message
+ */
+void __attribute__((noreturn)) ohcrap(const char* const msg);

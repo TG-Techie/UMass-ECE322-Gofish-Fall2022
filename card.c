@@ -90,11 +90,21 @@ static inline hand_node_t new_hand_node(card_t card) {
 }
 
 void hand_add_card(hand_t* hand, card_t card) {
-    nullable(hand_node_t) new_node = new_hand_node(card);
+    hand_node_t new_node = new_hand_node(card);  // nullable
+    new_node->next = NULL;
+
+    // TODO make the hand_add_card insert in rank order
+
+    // // DEBUG
+    // card_pretty_str_t x;
+    // card_sfmt(card, &x);
 
     if (hand->head == NULL) {
         if (hand->length != 0)
             ohcrap("mis-matched hand size (>0 with NULL)");
+        // else {
+        //     printf("(*0: %s) ", x.str);
+        // }
         hand->head = new_node;
         hand->length++;
     } else {
@@ -102,16 +112,29 @@ void hand_add_card(hand_t* hand, card_t card) {
         hand_node_t last = hand->head;
         int         card_count = 1;
         while (last->next != NULL) {
+            // DEBUG
+            // card_sfmt(last->card, &x);
+            // printf("%s ", x.str);
             last = last->next;
             card_count++;
         }
+
+        // Add the node
+        last->next = new_node;
+        card_count++;
+        hand->length++;
+
+        // // DEBUG
+        // card_sfmt(last->card, &x);
+        // printf("@%s ", x.str);
+        // // printf("(%i: %s) ", card_count, x.str);
 
         // sanity check
         if (card_count != hand->length) {
             char* errstr;
             asprintf(
                 &errstr,
-                "mis-matched hand size (count mismatch %i != %lu)",
+                "mis-matched hand size (count mismatch %i != %u)",
                 card_count,
                 hand->length);
             ohcrap(errstr);

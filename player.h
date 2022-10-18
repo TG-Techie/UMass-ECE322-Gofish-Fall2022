@@ -115,10 +115,10 @@ void player_deal_cards(
 );
 
 // TODO docstring
-rank_t pl_query_for_rank(player_t* player);
+rank_t player_query_for_rank(player_t* player);
 
 // TODO docstring
-rank_t pl_compy_turn(player_t* player);
+rank_t play_compy_turn(player_t* player);
 
 /**
  * @brief adds a rank to a player's book

@@ -122,9 +122,9 @@ void hand_add_card(hand_t* hand, card_t card) {
             char* errstr;
             asprintf(
                 &errstr,
-                "mis-matched hand size (count mismatch %i != %u)",
+                "mis-matched hand size (count mismatch %i != %i)",
                 card_count,
-                hand->length);
+                (int)hand->length);
             ohcrap(errstr);
         }
     }
@@ -168,19 +168,6 @@ void hand_search_remove_cards(
 
     *count += pos;
 }
-
-// void cards_print_arr(
-//     const card_t* const cards,
-//     size_t              count,
-//     char* const         ifempty  //
-// ) {
-//     card_pretty_str_t card_buf;
-//     for (range(idx, 0, count, 1)) {
-//         card_sfmt(cards[idx], &card_buf);
-//         printf("%s ", card_buf.str);
-//     }
-//     printf("%s\n", count == 0 ? ifempty : "");
-// }
 
 int hand_has_rank(const hand_t* const hand, rank_t rank) {
     hand_node_t node = hand->head;

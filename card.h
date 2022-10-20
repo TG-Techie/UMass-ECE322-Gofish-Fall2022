@@ -78,7 +78,7 @@ typedef enum __attribute__((__packed__)) {
 
 /**
  * @brief the values representing ranks on a card
- *s
+ *
  * @return typedef enum (one byte)
  */
 typedef enum __attribute__((__packed__)) {
@@ -157,7 +157,7 @@ const char* rank_as_str(rank_t);
  *
  */
 typedef struct {
-    char str[8];
+    char str[8];  // more than needed just to be safe
 } card_pretty_str_t;
 
 /**

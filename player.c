@@ -79,10 +79,10 @@ void player_cleanup(player_t *player) {
         char *errmsg;
         asprintf(
             &errmsg,
-            "node mismatch while cleaning up '%s', (%i != %u)",
+            "node mismatch while cleaning up '%s', (%i != %i)",
             player->name,
             node_count,
-            player->hand.length);
+            (int)player->hand.length);
         ohcrap(errmsg);
     }
 
@@ -116,7 +116,7 @@ void player_print_books(const player_t *const player) {
 
         // otherwise, print
         rank_t book = player->books[idx];
-        if (book != RANK_NULL) printf("% 2s ", rank_as_str(book));
+        if (book != RANK_NULL) printf("%-2s ", rank_as_str(book));
     }
     printf("\n");
 }

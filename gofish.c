@@ -1,15 +1,18 @@
 /* === [ License listed at the bottom of this file ] === */
 
 /** === [ Notes ] ===
- * This project was build and tested with these compiler flags:
- *  -std=gnu11
- *  -Wno-missing-declarations
- *  -Wshadow
- *  -Wno-format (for macOS & Linux cross compatibility)
  *
- * Undefined behavior in the assingment:
- *   Where the rules given in the assigment miss an edge case I used
- * softgame's rules http://www.softgame.net/cards/go-fish-rules.htm
+ * This project was build and tested with these compiler flags: -std=gnu11
+ *  -Wno-missing-declarations -Wshadow -Wno-format (for macOS & Linux cross
+ *  compatibility)
+ *
+ * Undefined behavior in the assingment: Where the rules given in the
+ * assigment miss an edge case I used softgame's rules
+ * http://www.softgame.net/cards/go-fish-rules.htm
+ *
+ * I started refactoring the code to make it easier to debug and split it
+ * into sub-sections, etc; it started to resembled the template less and
+ * less.
  */
 
 #include "gofish.h"
